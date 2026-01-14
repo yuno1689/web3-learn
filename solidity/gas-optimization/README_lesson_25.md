@@ -266,13 +266,13 @@ describe("边界测试", function () {
 
 ```bash
 # 安装覆盖率工具
-npm install --save-dev solidity-coverage
+pnpm install --save-dev solidity-coverage
 
 # 运行覆盖率测试
-npx hardhat coverage
+pnpm hardhat coverage
 
 # 生成报告
-npx hardhat coverage --solcoverjs
+pnpm hardhat coverage --solcoverjs
 ```
 
 ### 覆盖率目标
@@ -309,13 +309,13 @@ describe("分支覆盖测试", function () {
 
 ```bash
 # 安装 Gas 报告器
-npm install --save-dev hardhat-gas-reporter
+pnpm install --save-dev hardhat-gas-reporter
 
 # 配置 hardhat.config.js
 require("hardhat-gas-reporter");
 
 # 运行测试
-npx hardhat test
+pnpm hardhat test
 ```
 
 ### 示例

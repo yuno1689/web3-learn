@@ -223,8 +223,8 @@ function internalCall() public {
 **安装 Hardhat**：
 ```bash
 npm init -y
-npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox
-npx hardhat init
+pnpm install --save-dev hardhat @nomicfoundation/hardhat-toolbox
+pnpm hardhat init
 ```
 
 **测试文件结构**：
@@ -265,16 +265,16 @@ await expect(contract.revertFunction())
 
 ```bash
 # 编译合约
-npx hardhat compile
+pnpm hardhat compile
 
 # 运行测试
-npx hardhat test
+pnpm hardhat test
 
 # 测试覆盖率
-npx hardhat coverage
+pnpm hardhat coverage
 
 # Gas 报告
-npx hardhat test --report hardhat-gas-reporter
+pnpm hardhat test --report hardhat-gas-reporter
 ```
 
 ## 📊 本课 Gas 分析

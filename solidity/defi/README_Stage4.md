@@ -13,7 +13,7 @@
 - `README_lesson_17.md` - 教学文档
 - `test/lesson_17_dex_amm.test.js` - 测试文件
 
-**测试方法：** `npx hardhat test test/lesson_17_dex_amm.test.js`
+**测试方法：** `pnpm hardhat test test/lesson_17_dex_amm.test.js`
 
 **核心概念：**
 - 恒定乘积公式 (x * y = k)
@@ -35,7 +35,7 @@
 - `README_lesson_18.md` - 教学文档
 - `test/lesson_18_lending.test.js` - 测试文件
 
-**测试方法：** `npx hardhat test test/lesson_18_lending.test.js`
+**测试方法：** `pnpm hardhat test test/lesson_18_lending.test.js`
 
 **核心概念：**
 - 抵押率和清算阈值
@@ -57,7 +57,7 @@
 - `README_lesson_19.md` - 教学文档
 - `test/lesson_19_yield_aggregator.test.js` - 测试文件
 
-**测试方法：** `npx hardhat test test/lesson_19_yield_aggregator.test.js`
+**测试方法：** `pnpm hardhat test test/lesson_19_yield_aggregator.test.js`
 
 **核心概念：**
 - 自动复投机制
@@ -79,7 +79,7 @@
 - `README_lesson_20.md` - 教学文档
 - `test/lesson_20_dao_governance.test.js` - 测试文件
 
-**测试方法：** `npx hardhat test test/lesson_20_dao_governance.test.js`
+**测试方法：** `pnpm hardhat test test/lesson_20_dao_governance.test.js`
 
 **核心概念：**
 - 提案生命周期
@@ -248,24 +248,24 @@
 ### 开发工具
 ```bash
 # Hardhat
-npx hardhat compile
-npx hardhat test
-npx hardhat node
+pnpm hardhat compile
+pnpm hardhat test
+pnpm hardhat node
 
 # Gas 报告
-npx hardhat test --gas-report
+pnpm hardhat test --gas-report
 
 # 覆盖率报告
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 ### 部署工具
 ```bash
 # 部署到测试网
-npx hardhat run scripts/deploy.js --network goerli
+pnpm hardhat run scripts/deploy.js --network goerli
 
 # 验证合约
-npx hardhat verify --network goerli CONTRACT_ADDRESS CONSTRUCTOR_ARGS
+pnpm hardhat verify --network goerli CONTRACT_ADDRESS CONSTRUCTOR_ARGS
 ```
 
 ### 监控工具

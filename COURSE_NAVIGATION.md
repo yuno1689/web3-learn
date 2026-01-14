@@ -224,11 +224,11 @@ Week 3-4: 安全审计与优化 (Lesson 21-25，重点学习)
 ```bash
 # 运行所有测试
 cd web3/defi  # 或其他课程目录
-npm install
-npx hardhat test
+pnpm install
+pnpm hardhat test
 
 # 查看覆盖率报告
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 **测试统计**:

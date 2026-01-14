@@ -9,44 +9,44 @@
 cd web3/defi
 
 # 安装 Node.js 依赖
-npm install
+pnpm install
 ```
 
 ### 2. 编译合约
 
 ```bash
 # 编译所有合约
-npm run compile
+pnpm compile
 
 # 或使用 hardhat 直接编译
-npx hardhat compile
+pnpm hardhat compile
 ```
 
 ### 3. 运行测试
 
 ```bash
 # 运行所有测试
-npx hardhat test
+pnpm hardhat test
 
 # 运行特定课程的测试
-npx hardhat test test/lesson_17_dex_amm.test.js
-npx hardhat test test/lesson_18_lending.test.js
-npx hardhat test test/lesson_19_yield_aggregator.test.js
-npx hardhat test test/lesson_20_dao_governance.test.js
+pnpm hardhat test test/lesson_17_dex_amm.test.js
+pnpm hardhat test test/lesson_18_lending.test.js
+pnpm hardhat test test/lesson_19_yield_aggregator.test.js
+pnpm hardhat test test/lesson_20_dao_governance.test.js
 ```
 
 ### 4. 查看 Gas 报告
 
 ```bash
 # 运行测试并显示 Gas 报告
-REPORT_GAS=true npx hardhat test
+REPORT_GAS=true pnpm hardhat test
 ```
 
 ### 5. 生成测试覆盖率报告
 
 ```bash
 # 生成覆盖率报告
-npm run test:coverage
+pnpm coverage
 
 # 报告将生成在 coverage/ 目录
 ```
@@ -110,39 +110,39 @@ web3/
 
 ```bash
 # 清理编译缓存
-npm run clean
+pnpm clean
 
 # 启动本地节点
-npm run node
+pnpm node
 
 # 在另一个终端连接到本地节点
-npx hardhat console --network localhost
+pnpm hardhat console --network localhost
 ```
 
 ### 测试命令
 
 ```bash
 # 运行所有测试
-npx hardhat test
+pnpm hardhat test
 
 # 运行特定测试文件
-npx hardhat test test/lesson_17_dex_amm.test.js
+pnpm hardhat test test/lesson_17_dex_amm.test.js
 
 # 运行特定测试用例
-npx hardhat test --grep "应该成功存款"
+pnpm hardhat test --grep "应该成功存款"
 
 # 显示详细输出
-npx hardhat test --verbose
+pnpm hardhat test --verbose
 ```
 
 ### 部署命令（需要配置 .env）
 
 ```bash
 # 部署到 Goerli 测试网
-npx hardhat run scripts/deploy.js --network goerli
+pnpm hardhat run scripts/deploy.js --network goerli
 
 # 部署到 Sepolia 测试网
-npx hardhat run scripts/deploy.js --network sepolia
+pnpm hardhat run scripts/deploy.js --network sepolia
 ```
 
 ## 📝 学习建议
@@ -168,7 +168,7 @@ npx hardhat run scripts/deploy.js --network sepolia
 
 ```bash
 # 启动控制台
-npx hardhat console
+pnpm hardhat console
 
 # 在控制台中
 const Token = await ethers.getContractFactory("TestToken");
@@ -202,8 +202,8 @@ await ethers.provider.send("hardhat_mine", ["0x10"]); // 挖掘 16 个区块
 
 ```bash
 # 清理缓存重新编译
-npx hardhat clean
-npx hardhat compile
+pnpm hardhat clean
+pnpm hardhat compile
 ```
 
 ### 2. 测试超时
@@ -220,7 +220,7 @@ mocha: {
 ```bash
 # 设置环境变量
 export REPORT_GAS=true
-npm test
+pnpm test
 ```
 
 ## 📖 参考资源

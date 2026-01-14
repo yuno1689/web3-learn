@@ -38,7 +38,7 @@
 
 ```bash
 Node.js >= 16.x
-npm 或 yarn
+pnpm
 Git
 ```
 
@@ -56,16 +56,16 @@ Git
 cd web3/defi  # 或其他课程目录
 
 # 安装依赖
-npm install
+pnpm install
 
 # 编译合约
-npx hardhat compile
+pnpm hardhat compile
 
 # 运行测试
-npx hardhat test
+pnpm hardhat test
 
 # 查看覆盖率
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 ## 📁 项目结构

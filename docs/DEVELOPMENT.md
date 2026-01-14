@@ -457,7 +457,7 @@ web3/
 
 ```bash
 Node.js >= 16.x    # JavaScript 运行环境
-npm >= 8.x         # 包管理器
+pnpm >= 8.x        # 包管理器
 Git                # 版本控制
 ```
 
@@ -504,44 +504,44 @@ Docker             # 容器化部署（可选）
 cd web3/defi  # 或其他课程目录
 
 # 安装 Node.js 依赖
-npm install
+pnpm install
 ```
 
 #### 2.2 编译合约
 
 ```bash
-npx hardhat compile
+pnpm hardhat compile
 ```
 
 #### 2.3 运行测试
 
 ```bash
 # 运行所有测试
-npx hardhat test
+pnpm hardhat test
 
 # 运行特定测试文件
-npx hardhat test test/lesson_01_hello_world.test.js
+pnpm hardhat test test/lesson_01_hello_world.test.js
 
 # 显示详细输出
-npx hardhat test --verbose
+pnpm hardhat test --verbose
 ```
 
 #### 2.4 查看覆盖率
 
 ```bash
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 #### 2.5 启动本地节点
 
 ```bash
-npx hardhat node
+pnpm hardhat node
 ```
 
 然后在另一个终端部署合约：
 
 ```bash
-npx hardhat run scripts/deploy.js --network localhost
+pnpm hardhat run scripts/deploy.js --network localhost
 ```
 
 ---
@@ -604,19 +604,19 @@ forge fmt
 
 ```bash
 # 编译
-npx hardhat compile
+pnpm hardhat compile
 
 # 测试
-npx hardhat test
+pnpm hardhat test
 
 # 清理
-npx hardhat clean
+pnpm hardhat clean
 
 # 部署
-npx hardhat run scripts/deploy.js --network <network-name>
+pnpm hardhat run scripts/deploy.js --network <network-name>
 
 # 启动节点
-npx hardhat node
+pnpm hardhat node
 ```
 
 **配置文件** (`hardhat.config.js`):
@@ -741,16 +741,16 @@ describe("MyContract", function () {
 
 ```bash
 # 运行所有测试
-npx hardhat test
+pnpm hardhat test
 
 # 只运行匹配的测试
-npx hardhat test --grep "应该成功执行转账"
+pnpm hardhat test --grep "应该成功执行转账"
 
 # 显示详细输出
-npx hardhat test --verbose
+pnpm hardhat test --verbose
 
 # 生成覆盖率报告
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 ---
@@ -890,10 +890,10 @@ Week 3-4: 安全审计与优化 (Lesson 21-25，重点学习)
 2. **代码格式**
    ```bash
    # 安装格式化工具
-   npm install --save-dev prettier prettier-plugin-solidity
+   pnpm add -D prettier prettier-plugin-solidity
 
    # 格式化代码
-   npx prettier --write "**/*.sol"
+   pnpm prettier --write "**/*.sol"
    ```
 
 3. **注释规范**
@@ -959,10 +959,10 @@ Week 3-4: 安全审计与优化 (Lesson 21-25，重点学习)
 **解决方案**:
 ```bash
 # 使用国内镜像
-npm config set registry https://registry.npmmirror.com
+pnpm config set registry https://registry.npmmirror.com
 
 # 重新安装
-npm install
+pnpm install
 ```
 
 ---
@@ -976,8 +976,8 @@ npm install
 2. 确保 `hardhat.config.js` 中的版本一致
 3. 清理缓存重新编译
 ```bash
-npx hardhat clean
-npx hardhat compile
+pnpm hardhat clean
+pnpm hardhat compile
 ```
 
 ---
@@ -997,7 +997,7 @@ taskkill /PID <PID> /F
 lsof -ti:8545 | xargs kill -9
 
 # 重新运行测试
-npx hardhat test
+pnpm hardhat test
 ```
 
 ---
@@ -1069,11 +1069,11 @@ module.exports = {
 ```bash
 # 运行所有测试
 cd web3/defi  # 或其他课程目录
-npm install
-npx hardhat test
+pnpm install
+pnpm hardhat test
 
 # 查看覆盖率报告
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 **测试统计**:

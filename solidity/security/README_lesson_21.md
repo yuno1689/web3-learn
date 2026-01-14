@@ -593,10 +593,10 @@ describe("重入攻击测试", function () {
 
 ```bash
 # 生成 Gas 报告
-npx hardhat test --reporter gas-reporter
+pnpm hardhat test --reporter gas-reporter
 
 # 比较 Gas 消耗
-npx hardhat gas-report
+pnpm hardhat gas-report
 ```
 
 ## ✅ 课程检查清单

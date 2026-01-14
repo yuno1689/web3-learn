@@ -33,15 +33,15 @@ node --version
 mkdir solidity-learning
 cd solidity-learning
 
-npm install --save-dev hardhat
-npm install -g pnpm
+pnpm install --save-dev hardhat
+pnpm install -g pnpm
 
 # 初始化 Hardhat 项目
-npx hardhat init
+pnpm hardhat init
 
 # 选择 "Create a JavaScript project"
 # 安装依赖
-npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox
+pnpm install --save-dev hardhat @nomicfoundation/hardhat-toolbox
 ```
 
 #### 项目结构
@@ -66,22 +66,22 @@ solidity-learning/
 
 ```bash
 # 编译合约
-npx hardhat compile
+pnpm hardhat compile
 
 # 运行测试
-npx hardhat test
+pnpm hardhat test
 
 # 运行特定测试文件
 
 # 在本项目 web3/ 目录下运行测试
 cd web3
-npx hardhat test test/lesson_01_hello_world.test.js
+pnpm hardhat test test/lesson_01_hello_world.test.js
 
 # 查看 Gas 报告
-npx hardhat test --report hardhat-gas-reporter
+pnpm hardhat test --report hardhat-gas-reporter
 
 # 运行测试覆盖率
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 ## 📚 学习路径

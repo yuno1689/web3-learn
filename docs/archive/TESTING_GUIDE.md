@@ -14,16 +14,16 @@
 cd web3/solidity
 
 # 2. 安装依赖
-npm install --save-dev hardhat @nomiclabs/hardhat-waffle ethers chai
+pnpm install --save-dev hardhat @nomiclabs/hardhat-waffle ethers chai
 
 # 3. 初始化 Hardhat (如果还没有 hardhat.config.js)
-npx hardhat init
+pnpm hardhat init
 
 # 4. 编译合约
-npx hardhat compile
+pnpm hardhat compile
 
 # 5. 运行测试
-npx hardhat test
+pnpm hardhat test
 ```
 
 ## 📋 测试运行清单
@@ -32,54 +32,54 @@ npx hardhat test
 
 ```bash
 # Lesson 01: Hello World
-npx hardhat test basics/lesson_01_hello_world.test.js
+pnpm hardhat test basics/lesson_01_hello_world.test.js
 
 # Lesson 02: 数据类型
-npx hardhat test basics/lesson_02_data_types.test.js
+pnpm hardhat test basics/lesson_02_data_types.test.js
 
 # Lesson 03: 函数
-npx hardhat test basics/lesson_03_functions.test.js
+pnpm hardhat test basics/lesson_03_functions.test.js
 
 # Lesson 04: 控制结构
-npx hardhat test basics/lesson_04_control_structures.test.js
+pnpm hardhat test basics/lesson_04_control_structures.test.js
 
 # Lesson 05: 面向对象
-npx hardhat test basics/lesson_05_object_oriented.test.js
+pnpm hardhat test basics/lesson_05_object_oriented.test.js
 ```
 
 ### 第二阶段测试
 
 ```bash
 # Lesson 06: 状态管理
-npx hardhat test contracts/lesson_06_state_management.test.js
+pnpm hardhat test contracts/lesson_06_state_management.test.js
 
 # Lesson 07: 继承与多态
-npx hardhat test contracts/lesson_07_inheritance_polymorphism.test.js
+pnpm hardhat test contracts/lesson_07_inheritance_polymorphism.test.js
 
 # Lesson 08: 错误处理
-npx hardhat test contracts/lesson_08_error_handling.test.js
+pnpm hardhat test contracts/lesson_08_error_handling.test.js
 
 # Lesson 09: 事件与日志
-npx hardhat test contracts/lesson_09_events.test.js
+pnpm hardhat test contracts/lesson_09_events.test.js
 
 # Lesson 10: 安全机制
-npx hardhat test contracts/lesson_10_security.test.js
+pnpm hardhat test contracts/lesson_10_security.test.js
 ```
 
 ### 运行所有测试
 
 ```bash
 # 运行所有测试
-npx hardhat test
+pnpm hardhat test
 
 # 运行特定目录的测试
-npx hardhat test basics/
+pnpm hardhat test basics/
 
 # 显示详细输出
-npx hardhat test --verbose
+pnpm hardhat test --verbose
 
 # 显示 Gas 报告
-npx hardhat test --reporter gas
+pnpm hardhat test --reporter gas
 ```
 
 ## 🔧 配置文件
@@ -156,7 +156,7 @@ module.exports = {
 ### 安装覆盖率工具
 
 ```bash
-npm install --save-dev solidity-coverage
+pnpm install --save-dev solidity-coverage
 ```
 
 ### 配置 hardhat.config.js
@@ -172,7 +172,7 @@ module.exports = {
 ### 运行覆盖率测试
 
 ```bash
-npx hardhat coverage
+pnpm hardhat coverage
 ```
 
 ### 查看覆盖率报告
@@ -273,19 +273,19 @@ await network.provider.send("hardhat_mine", ["0x100"]);
 
 ```bash
 # 启用详细日志
-npx hardhat test --verbose
+pnpm hardhat test --verbose
 
 # 只运行匹配的测试
-npx hardhat test --grep "测试名称"
+pnpm hardhat test --grep "测试名称"
 
 # 显示 Gas 报告
-REPORTER=gas npx hardhat test
+REPORTER=gas pnpm hardhat test
 
 # 保留构建文件用于调试
-npx hardhat compile --force
+pnpm hardhat compile --force
 
 # 清理缓存
-npx hardhat clean
+pnpm hardhat clean
 ```
 
 ## 🔍 常见问题解决
@@ -299,7 +299,7 @@ Error: Compilation failed
 **解决方案**:
 - 检查 Solidity 版本是否匹配
 - 确认所有导入路径正确
-- 运行 `npx hardhat clean && npx hardhat compile`
+- 运行 `pnpm hardhat clean && pnpm hardhat compile`
 
 ### 问题 2: 测试超时
 
@@ -389,13 +389,13 @@ jobs:
       run: npm ci
 
     - name: Compile contracts
-      run: npx hardhat compile
+      run: pnpm hardhat compile
 
     - name: Run tests
-      run: npx hardhat test
+      run: pnpm hardhat test
 
     - name: Generate coverage
-      run: npx hardhat coverage
+      run: pnpm hardhat coverage
 
     - name: Upload coverage
       uses: codecov/codecov-action@v2

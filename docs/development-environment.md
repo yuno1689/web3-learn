@@ -89,10 +89,10 @@ Hardhat 是以太坊智能合约开发的流行框架。
 
 ```bash
 # 全局安装（推荐）
-npm install --global hardhat-shorthand
+pnpm install --global hardhat-shorthand
 
 # 或者在项目中安装
-npm install --save-dev hardhat
+pnpm install --save-dev hardhat
 ```
 
 ### 创建 Hardhat 项目
@@ -103,7 +103,7 @@ mkdir my-hardhat-project
 cd my-hardhat-project
 
 # 初始化项目
-npx hardhat init
+pnpm hardhat init
 
 # 选择以下选项：
 # - Create a JavaScript project
@@ -124,29 +124,29 @@ my-hardhat-project/
 ### 安装 OpenZeppelin 合约库
 
 ```bash
-npm install @openzeppelin/contracts
+pnpm install @openzeppelin/contracts
 ```
 
 ### 常用命令
 
 ```bash
 # 编译合约
-npx hardhat compile
+pnpm hardhat compile
 
 # 运行测试
-npx hardhat test
+pnpm hardhat test
 
 # 启动本地节点
-npx hardhat node
+pnpm hardhat node
 
 # 部署合约到本地网络
-npx hardhat run scripts/deploy.js --network localhost
+pnpm hardhat run scripts/deploy.js --network localhost
 
 # 清理编译文件
-npx hardhat clean
+pnpm hardhat clean
 
 # 在 Hardhat 控制台测试
-npx hardhat console --network localhost
+pnpm hardhat console --network localhost
 ```
 
 ---
@@ -292,12 +292,12 @@ forge verify-contract <CONTRACT_ADDRESS> <CONTRACT_NAME> --chain-id <CHAIN_ID>
 ### Hardhat
 
 ```bash
-npx hardhat compile          # 编译合约
-npx hardhat test             # 运行测试
-npx hardhat node             # 启动本地节点
-npx hardhat run <script>     # 运行脚本
-npx hardhat clean            # 清理编译文件
-npx hardhat console          # 进入控制台
+pnpm hardhat compile          # 编译合约
+pnpm hardhat test             # 运行测试
+pnpm hardhat node             # 启动本地节点
+pnpm hardhat run <script>     # 运行脚本
+pnpm hardhat clean            # 清理编译文件
+pnpm hardhat console          # 进入控制台
 ```
 
 ### Foundry
@@ -343,7 +343,7 @@ npm --version    # 应该 ≥ 8.x
 git --version
 
 # Hardhat
-npx hardhat --version
+pnpm hardhat --version
 
 # Foundry（如果安装了）
 forge --version
@@ -354,7 +354,7 @@ cast --version
 
 ```bash
 # 使用 Hardhat
-npx hardhat test
+pnpm hardhat test
 
 # 使用 Foundry
 forge init test-project
@@ -418,8 +418,8 @@ module.exports = {
 ### Q: Hardhat 编译报错怎么办？
 ```bash
 # 清理缓存重新编译
-npx hardhat clean
-npx hardhat compile
+pnpm hardhat clean
+pnpm hardhat compile
 ```
 
 ### Q: Foundry 安装失败？
@@ -435,7 +435,7 @@ xcode-select --install
 ### Q: OpenZeppelin 导入错误？
 ```bash
 # Hardhat
-npm install @openzeppelin/contracts
+pnpm install @openzeppelin/contracts
 
 # Foundry
 forge install OpenZeppelin/openzeppelin-contracts

@@ -149,19 +149,19 @@ library Math {
 
 ```bash
 # 初始化项目
-npx hardhat init
+pnpm hardhat init
 
 # 编译合约
-npx hardhat compile
+pnpm hardhat compile
 
 # 运行测试
-npx hardhat test
+pnpm hardhat test
 
 # 启动本地节点
-npx hardhat node
+pnpm hardhat node
 
 # 部署合约
-npx hardhat run scripts/deploy.js --network localhost
+pnpm hardhat run scripts/deploy.js --network localhost
 ```
 
 ### 测试框架
