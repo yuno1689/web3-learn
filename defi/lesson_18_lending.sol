@@ -24,6 +24,14 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @notice 管理单一资产的借贷池
  */
 contract LendingPool is ERC20, ReentrancyGuard, Ownable {
+    // ========== 自定义错误 ==========
+
+    error ZeroAmount();
+    error InsufficientCollateral();
+    error InsufficientLiquidity();
+    error InsufficientBalance();
+    error InvalidAmount();
+
     // ========== 核心参数 ==========
 
     /// @notice 底层资产代币
@@ -100,7 +108,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         string memory _symbol,
         uint256 _borrowRate
     ) ERC20(_name, _symbol) Ownable(msg.sender) {
-        require(_asset != address(0), "无效的资产地址");
+        require(_asset != address(0), unicode"Invalid asset address");
 
         asset = IERC20(_asset);
         borrowRatePerBlock = _borrowRate * 1e16 / 2102400; // 年化转每区块（假设年化 5%）
@@ -140,10 +148,12 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
             // 更新总借款（复利）
             totalBorrows += interestAccumulated;
 
-            // 更新借款指数
+            // 更新借款指数（只在有借款时更新）
             // borrowIndex = borrowIndex × (1 + interest / totalBorrows)
-            uint256 indexDelta = (interestAccumulated * RATE_SCALE) / totalBorrows;
-            borrowIndex += indexDelta;
+            if (totalBorrows > 0) {
+                uint256 indexDelta = (interestAccumulated * RATE_SCALE) / totalBorrows;
+                borrowIndex += indexDelta;
+            }
 
             // 更新储备金（利息收入）
             totalReserves += interestAccumulated;
@@ -168,7 +178,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      * 3. 更新用户账户信息
      */
     function deposit(uint256 amount) external nonReentrant returns (uint256) {
-        require(amount > 0, "数量必须大于零");
+        if (amount == 0) revert ZeroAmount();
 
         // 累积利息
         accrueInterest();
@@ -176,16 +186,15 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         // 转入资产
         require(
             asset.transferFrom(msg.sender, address(this), amount),
-            "资产转账失败"
+            unicode"Asset transfer failed"
         );
 
         // 铸造存款凭证代币（1:1 比例）
         _mint(msg.sender, amount);
 
-        // 更新用户账户
-        Account storage account = accounts[msg.sender];
-        account.principal += amount;
-        account.interestIndex = borrowIndex;
+        // 更新用户账户的 principal（存款本金）
+        // 注意：interestIndex 只在借款时设置，用于计算借款利息
+        accounts[msg.sender].principal += amount;
 
         emit Deposit(msg.sender, amount);
         return amount;
@@ -203,15 +212,18 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      * 4. 更新用户账户信息
      */
     function withdraw(uint256 amount) external nonReentrant returns (uint256) {
-        require(amount > 0, "数量必须大于零");
-        require(balanceOf(msg.sender) >= amount, "存款余额不足");
+        if (amount == 0) revert ZeroAmount();
+        if (balanceOf(msg.sender) < amount) revert InsufficientBalance();
 
         // 累积利息
         accrueInterest();
 
+        // 更新用户借款余额
+        updateBorrowBalance(msg.sender);
+
         // 检查合约是否有足够流动性
         uint256 availableLiquidity = getAvailableLiquidity();
-        require(availableLiquidity >= amount, "流动性不足");
+        if (availableLiquidity < amount) revert InsufficientLiquidity();
 
         // 销毁存款凭证代币
         _burn(msg.sender, amount);
@@ -221,7 +233,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         account.principal = account.principal > amount ? account.principal - amount : 0;
 
         // 转出资产
-        require(asset.transfer(msg.sender, amount), "资产转账失败");
+        require(asset.transfer(msg.sender, amount), unicode"Asset transfer failed");
 
         emit Withdraw(msg.sender, amount);
         return amount;
@@ -243,7 +255,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      * 最大借款 = 抵押额度 - 当前借款
      */
     function borrow(uint256 amount) external nonReentrant returns (uint256) {
-        require(amount > 0, "数量必须大于零");
+        if (amount == 0) revert ZeroAmount();
 
         // 累积利息
         accrueInterest();
@@ -251,15 +263,15 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         // 更新用户借款余额（包含之前累积的利息）
         updateBorrowBalance(msg.sender);
 
+        // 先检查流动性（顺序很重要）
+        uint256 availableLiquidity = getAvailableLiquidity();
+        if (availableLiquidity < amount) revert InsufficientLiquidity();
+
         // 计算可借款额度
         uint256 borrowCapacity = getBorrowCapacity(msg.sender);
         uint256 currentBorrow = accounts[msg.sender].borrowBalance;
 
-        require(currentBorrow + amount <= borrowCapacity, "超出借款额度");
-
-        // 检查流动性
-        uint256 availableLiquidity = getAvailableLiquidity();
-        require(availableLiquidity >= amount, "流动性不足");
+        if (currentBorrow + amount > borrowCapacity) revert InsufficientCollateral();
 
         // 更新用户借款
         Account storage account = accounts[msg.sender];
@@ -269,7 +281,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         totalBorrows += amount;
 
         // 转出资产
-        require(asset.transfer(msg.sender, amount), "资产转账失败");
+        require(asset.transfer(msg.sender, amount), unicode"Asset transfer failed");
 
         emit Borrow(msg.sender, amount);
         return amount;
@@ -287,7 +299,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      * 4. 更新总借款
      */
     function repay(uint256 amount) external nonReentrant returns (uint256) {
-        require(amount > 0, "数量必须大于零");
+        if (amount == 0) revert ZeroAmount();
 
         // 累积利息
         accrueInterest();
@@ -304,7 +316,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         // 转入资产
         require(
             asset.transferFrom(msg.sender, address(this), repayAmount),
-            "资产转账失败"
+            unicode"Asset transfer failed"
         );
 
         // 减少借款余额
@@ -341,8 +353,8 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         nonReentrant
         returns (uint256)
     {
-        require(borrower != address(0), "无效的借款人地址");
-        require(repayAmount > 0, "还款数量必须大于零");
+        require(borrower != address(0), unicode"Invalid borrower address");
+        if (repayAmount == 0) revert ZeroAmount();
 
         // 累积利息
         accrueInterest();
@@ -354,12 +366,12 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         uint256 totalDebt = account.borrowBalance;
         uint256 collateral = balanceOf(borrower);
 
-        require(totalDebt > 0, "该用户无借款");
-        require(collateral > 0, "该用户无抵押品");
+        require(totalDebt > 0, unicode"No borrow debt for this user");
+        require(collateral > 0, unicode"No collateral for this user");
 
         // 检查是否可以清算
         uint256 collateralRatio = (totalDebt * 100) / collateral;
-        require(collateralRatio > liquidationThreshold, "未达到清算条件");
+        if (collateralRatio <= liquidationThreshold) revert InsufficientCollateral();
 
         // 计算可清算数量（最多清算债务的 50%）
         uint256 maxRepay = totalDebt / 2;
@@ -369,12 +381,12 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
         // collateralSeized = actualRepay × (1 + liquidationBonus)
         uint256 collateralSeized = (actualRepay * (100 + liquidationBonus)) / 100;
 
-        require(collateral >= collateralSeized, "抵押品不足");
+        require(collateral >= collateralSeized, unicode"Insufficient collateral");
 
         // 清算人还款
         require(
             asset.transferFrom(msg.sender, address(this), actualRepay),
-            "还款转账失败"
+            unicode"Repayment transfer failed"
         );
 
         // 减少借款
@@ -427,20 +439,18 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
     function calculateBorrowBalance(address user) public view returns (uint256) {
         Account memory account = accounts[user];
 
-        if (account.principal == 0) {
+        // 如果没有借款，返回 0
+        if (account.borrowBalance == 0) {
             return 0;
         }
 
-        // 计算利息
-        uint256 principal = account.borrowBalance;
-        uint256 interestIndex = account.interestIndex;
-
-        if (interestIndex == 0) {
-            return principal;
+        // 如果 interestIndex 为 0（还未设置），返回原始借款余额
+        if (account.interestIndex == 0) {
+            return account.borrowBalance;
         }
 
-        // 计算复利
-        return (principal * borrowIndex) / interestIndex;
+        // 计算复利：borrowBalance × (currentBorrowIndex / userBorrowIndex)
+        return (account.borrowBalance * borrowIndex) / account.interestIndex;
     }
 
     /**
@@ -486,13 +496,14 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
     function updateBorrowBalance(address user) internal {
         Account storage account = accounts[user];
 
+        // 如果有借款余额且 interestIndex 已设置
         if (account.borrowBalance > 0 && account.interestIndex > 0) {
             // 计算利息并加到本金
             uint256 interest = (account.borrowBalance * (borrowIndex - account.interestIndex)) / account.interestIndex;
             account.borrowBalance += interest;
         }
 
-        // 更新利息指数
+        // 更新利息指数（即使没有借款也要更新，为下次借款做准备）
         account.interestIndex = borrowIndex;
     }
 
@@ -503,8 +514,8 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      * @param _collateralFactor 新的抵押率
      */
     function setCollateralFactor(uint256 _collateralFactor) external onlyOwner {
-        require(_collateralFactor <= 100, "抵押率不能超过 100%");
-        require(_collateralFactor > 0, "抵押率必须大于 0");
+        require(_collateralFactor <= 100, unicode"抵押率不能超过 100%");
+        require(_collateralFactor > 0, unicode"抵押率必须大于 0");
         collateralFactor = _collateralFactor;
     }
 
@@ -513,8 +524,8 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      * @param _liquidationThreshold 新的清算阈值
      */
     function setLiquidationThreshold(uint256 _liquidationThreshold) external onlyOwner {
-        require(_liquidationThreshold <= 100, "清算阈值不能超过 100%");
-        require(_liquidationThreshold > 0, "清算阈值必须大于 0");
+        require(_liquidationThreshold <= 100, unicode"清算阈值不能超过 100%");
+        require(_liquidationThreshold > 0, unicode"清算阈值必须大于 0");
         liquidationThreshold = _liquidationThreshold;
     }
 
@@ -523,7 +534,7 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      * @param _liquidationBonus 新的清算罚金
      */
     function setLiquidationBonus(uint256 _liquidationBonus) external onlyOwner {
-        require(_liquidationBonus <= 20, "清算罚金不能超过 20%");
+        require(_liquidationBonus <= 20, unicode"清算罚金不能超过 20%");
         liquidationBonus = _liquidationBonus;
     }
 

@@ -121,6 +121,9 @@ contract MyToken is IERC20 {
 contract BurnableToken is MyToken {
     event Burned(address indexed account, uint256 amount);
 
+    constructor(uint256 _initialSupply) MyToken(_initialSupply) {
+    }
+
     function burn(uint256 amount) public {
         _burn(msg.sender, amount);
         emit Burned(msg.sender, amount);
@@ -226,6 +229,16 @@ contract MyNFT is IERC721 {
         uint256 tokenId = _tokenIdCounter++;
         _safeMint(to, tokenId);
         return tokenId;
+    }
+
+    function mintWithTokenId(address to, uint256 tokenId) public returns (uint256) {
+        _safeMint(to, tokenId);
+        return tokenId;
+    }
+
+    function burn(uint256 tokenId) public {
+        require(_isApprovedOrOwner(msg.sender, tokenId), "Caller is not owner nor approved");
+        _burn(tokenId);
     }
 
     function _safeMint(address to, uint256 tokenId) internal {

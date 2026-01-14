@@ -24,6 +24,13 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @notice 管理两个 ERC20 代币之间的流动性池和交换
  */
 contract AMMPair is ERC20, ReentrancyGuard, Ownable {
+    // ========== 自定义错误 ==========
+
+    error ZeroAmount();
+    error InsufficientLiquidity();
+    error InvalidAmount();
+    error SlippageExceeded();
+
     // ========== 状态变量 ==========
 
     /// @notice 交易对中的两个代币
@@ -66,8 +73,8 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         string memory _name,
         string memory _symbol
     ) ERC20(_name, _symbol) Ownable(msg.sender) {
-        require(_token0 != address(0) && _token1 != address(0), "无效的代币地址");
-        require(_token0 != _token1, "代币地址不能相同");
+        require(_token0 != address(0) && _token1 != address(0), unicode"无效的代币地址");
+        require(_token0 != _token1, unicode"代币地址不能相同");
 
         token0 = IERC20(_token0);
         token1 = IERC20(_token1);
@@ -105,15 +112,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
             uint256 liquidity
         )
     {
-        // 转入代币到合约
-        require(
-            token0.transferFrom(msg.sender, address(this), amount0Desired),
-            "Token0 转账失败"
-        );
-        require(
-            token1.transferFrom(msg.sender, address(this), amount1Desired),
-            "Token1 转账失败"
-        );
+        if (amount0Desired == 0 || amount1Desired == 0) revert ZeroAmount();
 
         uint256 _totalSupply = totalSupply();
 
@@ -123,47 +122,57 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
             amount0 = amount0Desired;
             amount1 = amount1Desired;
 
-            // 锁定最小流动性，防止永久性损失所有流动性
-            // 这部分 LP 代币永远无法赎回，确保价格计算不会除零
-            liquidity = amount0 * amount1 - MINIMUM_LIQUIDITY;
-
-            // 将锁定的流动性铸造给零地址（永远无法使用）
-            _mint(address(0), MINIMUM_LIQUIDITY);
-        } else {
-            // ========== 后续添加流动性 ==========
-            // 必须按当前储备金比例添加，否则会破坏价格平衡
-            // amount0 / reserve0 应该等于 amount1 / reserve1
-
-            amount0 = (amount0Desired * reserve1) / reserve0;
-
-            if (amount0 <= reserve0) {
-                // 如果按 token1 计算，需要的 token0 较少
-                amount1 = (amount0 * reserve1) / reserve0;
-                require(amount1 <= amount1Desired, "Token1 数量不足");
-
-                // 退还多余的 token0
-                if (amount0 < amount0Desired) {
-                    token0.transfer(msg.sender, amount0Desired - amount0);
-                }
+            // 计算 LP 代币数量
+            // liquidity = sqrt(amount0 * amount1)
+            liquidity = sqrt(amount0 * amount1);
+            if (liquidity > MINIMUM_LIQUIDITY) {
+                liquidity = liquidity - MINIMUM_LIQUIDITY;
             } else {
-                // 如果按 token0 计算，需要的 token1 较少
-                amount1 = amount1Desired;
-                amount0 = (amount1 * reserve0) / reserve1;
-
-                // 退还多余的 token1
-                if (amount1 < amount1Desired) {
-                    token1.transfer(msg.sender, amount1Desired - amount1);
-                }
+                liquidity = 0;
             }
 
+            // 将锁定的流动性永久保留在合约地址
+            _mint(address(this), MINIMUM_LIQUIDITY);
+        } else {
+            // ========== 后续添加流动性 ==========
+            // 按比例计算需要的数量
+            amount1 = (amount0Desired * reserve1) / reserve0;
+
+            if (amount1 <= amount1Desired) {
+                amount0 = amount0Desired;
+            } else {
+                amount1 = amount1Desired;
+                amount0 = (amount1 * reserve0) / reserve1;
+            }
+
+            // 注意：不做使用率检查，允许用户提供任意比例的代币
+            // 多余的代币会被退还
+
             // 计算 LP 代币数量
-            // 逻辑：你按当前池子的比例添加，所以应该按比例获得 LP 代币
             liquidity = (amount0 * _totalSupply) / reserve0;
         }
 
+        // 转入代币到合约（全部转入，稍后退还多余部分）
+        require(
+            token0.transferFrom(msg.sender, address(this), amount0Desired),
+            unicode"Token0 转账失败"
+        );
+        require(
+            token1.transferFrom(msg.sender, address(this), amount1Desired),
+            unicode"Token1 转账失败"
+        );
+
+        // 退还多余的代币
+        if (amount0 < amount0Desired) {
+            token0.transfer(msg.sender, amount0Desired - amount0);
+        }
+        if (amount1 < amount1Desired) {
+            token1.transfer(msg.sender, amount1Desired - amount1);
+        }
+
         // 滑点保护：确保实际数量在可接受范围内
-        require(amount0 >= amount0Min, "Token0 滑点过大");
-        require(amount1 >= amount1Min, "Token1 滑点过大");
+        require(amount0 >= amount0Min, unicode"Token0 滑点过大");
+        require(amount1 >= amount1Min, unicode"Token1 滑点过大");
 
         // 更新储备金
         _update(balance0(), balance1());
@@ -193,7 +202,8 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         uint256 amount0Min,
         uint256 amount1Min
     ) external nonReentrant returns (uint256 amount0, uint256 amount1) {
-        require(balanceOf(msg.sender) >= liquidity, "流动性余额不足");
+        if (liquidity == 0) revert ZeroAmount();
+        if (balanceOf(msg.sender) < liquidity) revert InsufficientLiquidity();
 
         // 计算应赎回的代币数量
         uint256 _totalSupply = totalSupply();
@@ -201,8 +211,8 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         amount1 = (liquidity * reserve1) / _totalSupply;
 
         // 滑点保护
-        require(amount0 >= amount0Min, "Token0 滑点过大");
-        require(amount1 >= amount1Min, "Token1 滑点过大");
+        if (amount0 < amount0Min) revert SlippageExceeded();
+        if (amount1 < amount1Min) revert SlippageExceeded();
 
         // 销毁 LP 代币
         _burn(msg.sender, liquidity);
@@ -239,20 +249,22 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         nonReentrant
         returns (uint256 amount1Out)
     {
-        require(amount0In > 0, "数量必须大于零");
-        require(balance0() >= amount0In, "Token0 余额不足");
+        if (amount0In == 0) revert ZeroAmount();
+
+        uint256 balance0Before = balance0();
+        if (balance0Before < amount0In) revert InsufficientLiquidity();
 
         // 计算输出数量（扣除 0.3% 手续费）
         // fee = 0.3%，所以输入有效部分 = 997/1000
         uint256 amount0InWithFee = amount0In * 997 / 1000;
         amount1Out = (reserve1 * amount0InWithFee) / (reserve0 + amount0InWithFee);
 
-        require(amount1Out > 0, "输出数量为零");
-        require(amount1Out <= reserve1, "流动性不足");
-        require(amount1Out >= amount1Min, "滑点过大");
+        if (amount1Out == 0) revert InsufficientLiquidity();
+        if (amount1Out >= reserve1) revert InsufficientLiquidity();
+        if (amount1Out < amount1Min) revert SlippageExceeded();
 
         // 更新储备金
-        _update(balance0(), balance1() - amount1Out);
+        _update(balance0Before + amount0In, balance1() - amount1Out);
 
         // 转账
         token0.transferFrom(msg.sender, address(this), amount0In);
@@ -275,19 +287,21 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         nonReentrant
         returns (uint256 amount0Out)
     {
-        require(amount1In > 0, "数量必须大于零");
-        require(balance1() >= amount1In, "Token1 余额不足");
+        if (amount1In == 0) revert ZeroAmount();
+
+        uint256 balance1Before = balance1();
+        if (balance1Before < amount1In) revert InsufficientLiquidity();
 
         // 计算输出数量（扣除 0.3% 手续费）
         uint256 amount1InWithFee = amount1In * 997 / 1000;
         amount0Out = (reserve0 * amount1InWithFee) / (reserve1 + amount1InWithFee);
 
-        require(amount0Out > 0, "输出数量为零");
-        require(amount0Out <= reserve0, "流动性不足");
-        require(amount0Out >= amount0Min, "滑点过大");
+        if (amount0Out == 0) revert InsufficientLiquidity();
+        if (amount0Out >= reserve0) revert InsufficientLiquidity();
+        if (amount0Out < amount0Min) revert SlippageExceeded();
 
         // 更新储备金
-        _update(balance0() - amount0Out, balance1());
+        _update(balance0() - amount0Out, balance1Before + amount1In);
 
         // 转账
         token1.transferFrom(msg.sender, address(this), amount1In);
@@ -309,12 +323,12 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         view
         returns (uint256 amountOut)
     {
-        require(amountIn > 0, "数量必须大于零");
+        require(amountIn > 0, unicode"数量必须大于零");
 
         uint256 amountInWithFee = amountIn * 997 / 1000;
         amountOut = (reserve1 * amountInWithFee) / (reserve0 + amountInWithFee);
 
-        require(amountOut <= reserve1, "流动性不足");
+        require(amountOut <= reserve1, unicode"流动性不足");
     }
 
     /**
@@ -327,12 +341,12 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         view
         returns (uint256 amountOut)
     {
-        require(amountIn > 0, "数量必须大于零");
+        require(amountIn > 0, unicode"数量必须大于零");
 
         uint256 amountInWithFee = amountIn * 997 / 1000;
         amountOut = (reserve0 * amountInWithFee) / (reserve1 + amountInWithFee);
 
-        require(amountOut <= reserve0, "流动性不足");
+        require(amountOut <= reserve0, unicode"流动性不足");
     }
 
     /**
@@ -358,7 +372,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
      * @param balance1 新的 token1 余额
      */
     function _update(uint256 balance0, uint256 balance1) private {
-        require(balance0 <= type(uint256).max && balance1 <= type(uint256).max, "溢出");
+        require(balance0 <= type(uint256).max && balance1 <= type(uint256).max, unicode"溢出");
 
         // 更新储备金状态
         reserve0 = balance0;
@@ -384,6 +398,22 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
     }
 
     /**
+     * @notice 计算平方根（使用牛顿迭代法）
+     * @param x 输入值
+     * @return 平方根
+     */
+    function sqrt(uint256 x) private pure returns (uint256) {
+        if (x == 0) return 0;
+        uint256 z = (x + 1) / 2;
+        uint256 y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
+        return y;
+    }
+
+    /**
      * @notice 计算流动性份额对应的代币数量
      * @param liquidity LP 代币数量
      * @return amount0 对应的 token0 数量
@@ -395,8 +425,8 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         returns (uint256 amount0, uint256 amount1)
     {
         uint256 _totalSupply = totalSupply();
-        require(_totalSupply > 0, "无流动性");
-        require(liquidity <= _totalSupply, "超出总供应量");
+        require(_totalSupply > 0, unicode"无流动性");
+        require(liquidity <= _totalSupply, unicode"超出总供应量");
 
         amount0 = (liquidity * reserve0) / _totalSupply;
         amount1 = (liquidity * reserve1) / _totalSupply;

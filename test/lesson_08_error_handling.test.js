@@ -392,20 +392,28 @@ describe("Lesson 08: 错误处理", function () {
         });
 
         it("转账失败应该恢复状态", async function () {
-            // 这个测试需要特殊设置，暂时跳过
-            this.skip();
-
-            /* 测试代码暂时注释掉
-            // 部署一个拒绝接收 Ether 的合约
-            const RejectReceiver = await ethers.getContractFactory(rejectReceiverCode);
-            const rejectReceiver = await RejectReceiver.deploy();
-            await rejectReceiver.waitForDeployment();
-
             const depositAmount = ethers.parseEther("5.0");
             await bank.connect(user1).deposit({ value: depositAmount });
 
-            const withdrawAmount = ethers.parseEther("1.0");
-            */
+            // user1 的余额
+            const balanceBefore = await bank.balances(user1.address);
+
+            // 尝试转账超过余额的数量，应该失败
+            const excessAmount = ethers.parseEther("10.0");
+            await expect(
+                bank.connect(user1).transfer(user2.address, excessAmount)
+            ).to.be.revertedWith("Insufficient balance for transfer");
+
+            // 余额应该保持不变
+            const balanceAfter = await bank.balances(user1.address);
+            expect(balanceAfter).to.equal(balanceBefore);
+
+            // 正常转账应该成功
+            const transferAmount = ethers.parseEther("2.0");
+            await bank.connect(user1).transfer(user2.address, transferAmount);
+
+            expect(await bank.balances(user1.address)).to.equal(balanceBefore - transferAmount);
+            expect(await bank.balances(user2.address)).to.equal(transferAmount);
         });
     });
 });

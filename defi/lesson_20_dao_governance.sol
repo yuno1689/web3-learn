@@ -63,7 +63,7 @@ contract GovernanceToken is ERC20, Ownable {
         string memory _symbol,
         uint256 _initialSupply
     ) ERC20(_name, _symbol) Ownable(msg.sender) {
-        require(_initialSupply <= MAX_SUPPLY, "超过最大供应量");
+        require(_initialSupply <= MAX_SUPPLY, unicode"Exceeds max supply");
         _mint(msg.sender, _initialSupply);
 
         // 记录初始总供应量检查点
@@ -89,7 +89,7 @@ contract GovernanceToken is ERC20, Ownable {
      * @return 该区块的投票权重
      */
     function getPastVotes(address account, uint256 blockNumber) public view returns (uint256) {
-        require(blockNumber < block.number, "查询未来区块");
+        require(blockNumber < block.number, unicode"Cannot query future blocks");
 
         uint256 checkpointsNum = checkpoints[account].length;
         if (checkpointsNum == 0) {
@@ -223,7 +223,7 @@ contract GovernanceToken is ERC20, Ownable {
      * @notice 获取历史总供应量
      */
     function getPastTotalSupply(uint256 blockNumber) public view returns (uint256) {
-        require(blockNumber < block.number, "查询未来区块");
+        require(blockNumber < block.number, unicode"Cannot query future blocks");
 
         uint256 checkpointsNum = totalSupplyCheckpoints.length;
         if (checkpointsNum == 0) {
@@ -265,8 +265,8 @@ contract DAOGovernor is
     constructor(
         IVotes _token,
         TimelockController _timelock,
-        uint256 _votingDelay,
-        uint256 _votingPeriod,
+        uint48 _votingDelay,
+        uint32 _votingPeriod,
         uint256 _quorumNumerator
     )
         Governor("DAO Governor")
@@ -308,22 +308,73 @@ contract DAOGovernor is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public override(Governor, IGovernor) returns (uint256) {
+    ) public override returns (uint256) {
         return super.propose(targets, values, calldatas, description);
     }
 
+
     /**
-     * @notice 执行提案
-     * @dev 通过时间锁执行
+     * @notice 获取法定人数（最少投票数）
      */
-    function _execute(
+    function quorum(uint256 blockNumber)
+        public
+        view
+        override(Governor, GovernorVotesQuorumFraction)
+        returns (uint256)
+    {
+        return super.quorum(blockNumber);
+    }
+
+    /**
+     * @notice 获取提案状态
+     */
+    function state(uint256 proposalId)
+        public
+        view
+        override(Governor, GovernorTimelockControl)
+        returns (ProposalState)
+    {
+        return super.state(proposalId);
+    }
+
+    // ========== 必须重写的内部函数 ==========
+
+    /**
+     * @notice 检查提案是否需要排队
+     */
+    function proposalNeedsQueuing(uint256 proposalId)
+        public
+        view
+        override(Governor, GovernorTimelockControl)
+        returns (bool)
+    {
+        return super.proposalNeedsQueuing(proposalId);
+    }
+
+    /**
+     * @notice 排队操作
+     */
+    function _queueOperations(
+        uint256 proposalId,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        bytes32 descriptionHash
+    ) internal override(Governor, GovernorTimelockControl) returns (uint48) {
+        return super._queueOperations(proposalId, targets, values, calldatas, descriptionHash);
+    }
+
+    /**
+     * @notice 执行操作
+     */
+    function _executeOperations(
         uint256 proposalId,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
     ) internal override(Governor, GovernorTimelockControl) {
-        super._execute(proposalId, targets, values, calldatas, descriptionHash);
+        super._executeOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     /**
@@ -339,52 +390,15 @@ contract DAOGovernor is
     }
 
     /**
-     * @notice 计算选票权重
+     * @notice 获取执行器地址
      */
-    function _countVote(
-        uint256 proposalId,
-        address account,
-        uint256 support,
-        uint256 weight
-    ) internal override(Governor, GovernorCountingSimple) {
-        super._countVote(proposalId, account, support, weight);
-    }
-
-    /**
-     * @notice 提案执行逻辑
-     */
-    function _executeOperations(
-        uint256 proposalId,
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas,
-        bytes32 descriptionHash
-    ) internal override(Governor, GovernorTimelockControl) {
-        super._executeOperations(proposalId, targets, values, calldatas, descriptionHash);
-    }
-
-    /**
-     * @notice 获取法定人数（最少投票数）
-     */
-    function quorum(uint256 blockNumber)
-        public
+    function _executor()
+        internal
         view
-        override(IGovernor, GovernorVotesQuorumFraction)
-        returns (uint256)
+        override(Governor, GovernorTimelockControl)
+        returns (address)
     {
-        return super.quorum(blockNumber);
-    }
-
-    /**
-     * @notice 获取提案状态
-     */
-    function state(uint256 proposalId)
-        public
-        view
-        override(Governor, IGovernor)
-        returns (ProposalState)
-    {
-        return super.state(proposalId);
+        return super._executor();
     }
 }
 
@@ -409,8 +423,8 @@ contract DAOFactory {
         string tokenName;
         string tokenSymbol;
         uint256 initialSupply;
-        uint256 votingDelay;      // 投票延迟（区块）
-        uint256 votingPeriod;     // 投票周期（区块）
+        uint48 votingDelay;      // 投票延迟（区块）
+        uint32 votingPeriod;     // 投票周期（区块）
         uint256 quorumFraction;   // 法定人数比例（基点）
         uint256 timelockDelay;    // 时间锁延迟（秒）
     }
@@ -468,7 +482,7 @@ contract DAOFactory {
         // 3. 部署治理合约
         DAOGovernor governor = new DAOGovernor(
             IVotes(address(token)),
-            TimelockController(address(timelock)),
+            timelock,
             config.votingDelay,
             config.votingPeriod,
             config.quorumFraction
@@ -479,10 +493,12 @@ contract DAOFactory {
         timelock.grantRole(timelock.CANCELLER_ROLE(), address(governor));
         timelock.grantRole(timelock.EXECUTOR_ROLE(), address(0)); // 任何人都可以执行
         timelock.revokeRole(timelock.PROPOSER_ROLE(), address(this));
-        timelock.revokeRole(timelock.TIMELOCK_ADMIN_ROLE(), msg.sender);
-        timelock.acceptAdmin();
+        timelock.revokeRole(timelock.DEFAULT_ADMIN_ROLE(), msg.sender);
 
-        // 5. 记录 DAO
+        // 5. 将代币转移给创建者
+        token.transfer(msg.sender, config.initialSupply);
+
+        // 6. 记录 DAO
         dao = DAOInstance({
             token: address(token),
             governor: address(governor),

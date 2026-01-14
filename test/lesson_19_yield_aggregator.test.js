@@ -105,7 +105,10 @@ describe("📘 Lesson 19: 收益聚合器", function () {
             // 首次存款
             await vault.connect(user1).deposit(ethers.parseEther("1000"));
 
-            // 模拟收益（份额价格上涨）
+            // 模拟收益：向策略转入代币作为利润
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
+
+            // 设置收益标记并收获
             await strategy.setProfit(ethers.parseEther("100"));
             await vault.harvest();
 
@@ -151,7 +154,8 @@ describe("📘 Lesson 19: 收益聚合器", function () {
         });
 
         it("应该根据份额价格计算提款金额", async function () {
-            // 模拟收益
+            // 模拟收益：向策略转入代币作为利润
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
             await strategy.setProfit(ethers.parseEther("100"));
             await vault.harvest();
 
@@ -195,14 +199,16 @@ describe("📘 Lesson 19: 收益聚合器", function () {
         });
 
         it("应该成功收获收益", async function () {
-            // 设置策略收益
-            await strategy.setProfit(ethers.parseEther("100"));
-
             const totalAssetsBefore = await vault.getTotalAssets();
             const sharePriceBefore = await vault.sharePrice();
 
+            // 向策略转入代币作为利润
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
+            // 设置策略收益
+            await strategy.setProfit(ethers.parseEther("100"));
+
             // 收获
-            const profit = await vault.harvest();
+            await vault.harvest();
 
             const totalAssetsAfter = await vault.getTotalAssets();
             const sharePriceAfter = await vault.sharePrice();
@@ -213,11 +219,13 @@ describe("📘 Lesson 19: 收益聚合器", function () {
             // 份额价格应该上涨
             expect(sharePriceAfter).to.be.greaterThan(sharePriceBefore);
 
-            // 收获后资金应该重新存入策略
-            expect(await token.balanceOf(await vault.getAddress())).to.be.lt(profit);
+            // 收获后资金应该重新存入策略（余额应该很少）
+            const vaultBalance = await token.balanceOf(await vault.getAddress());
+            expect(vaultBalance).to.be.lt(ethers.parseEther("80"));
         });
 
         it("应该正确收取性能费用", async function () {
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
             await strategy.setProfit(ethers.parseEther("100"));
 
             const feeRecipientBalanceBefore = await token.balanceOf(feeRecipient.address);
@@ -232,6 +240,7 @@ describe("📘 Lesson 19: 收益聚合器", function () {
         });
 
         it("应该正确更新份额价格", async function () {
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
             await strategy.setProfit(ethers.parseEther("100"));
 
             const sharePriceBefore = await vault.sharePrice();
@@ -248,6 +257,7 @@ describe("📘 Lesson 19: 收益聚合器", function () {
         });
 
         it("应该自动复投收益", async function () {
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
             await strategy.setProfit(ethers.parseEther("100"));
 
             await vault.harvest();
@@ -357,6 +367,7 @@ describe("📘 Lesson 19: 收益聚合器", function () {
         it("收益后应该正确更新份额价格", async function () {
             await vault.connect(user1).deposit(ethers.parseEther("1000"));
 
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
             await strategy.setProfit(ethers.parseEther("100"));
             await vault.harvest();
 
@@ -377,6 +388,7 @@ describe("📘 Lesson 19: 收益聚合器", function () {
             await vault.connect(user2).deposit(ethers.parseEther("1000"));
 
             // 产生收益
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("200"));
             await strategy.setProfit(ethers.parseEther("200"));
             await vault.harvest();
 
@@ -426,9 +438,9 @@ describe("📘 Lesson 19: 收益聚合器", function () {
 
             const info = await vault.getVaultInfo();
 
-            expect(info[0]).to.be.closeTo(ethers.parseEther("1000"), ethers.parseEther("1")); // totalAssets
-            expect(info[1]).to.be.closeTo(ethers.parseEther("1000"), ethers.parseEther("1")); // totalSupply
-            expect(info[2]).to.equal(ethers.parseEther("1")); // sharePrice
+            expect(info[0]).to.be.closeTo(ethers.parseEther("1000"), ethers.parseEther("1")); // totalAssetsValue
+            expect(info[1]).to.be.closeTo(ethers.parseEther("1000"), ethers.parseEther("1")); // totalSupplyValue
+            expect(info[2]).to.equal(ethers.parseEther("1")); // sharePriceValue
             expect(info[3]).to.equal(await strategy.getAddress()); // activeStrategy
         });
 
@@ -454,6 +466,7 @@ describe("📘 Lesson 19: 收益聚合器", function () {
             await vault.connect(user1).deposit(ethers.parseEther("1000"));
 
             // 产生收益
+            await token.connect(user1).transfer(await strategy.getAddress(), ethers.parseEther("100"));
             await strategy.setProfit(ethers.parseEther("100"));
             await vault.harvest();
 

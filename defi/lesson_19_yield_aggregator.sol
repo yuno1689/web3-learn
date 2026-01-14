@@ -88,7 +88,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
     /// @notice 管理费用（基点，100 = 1%）
     uint256 public managementFee;
 
-    /// @brief 性能费用（基点，100 = 1%）
+    /// @notice 性能费用（基点，100 = 1%）
     uint256 public performanceFee;
 
     /// @notice 管理费用收取间隔（秒）
@@ -155,8 +155,8 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
         string memory _symbol,
         uint256 _harvestInterval
     ) ERC20(_name, _symbol) Ownable(msg.sender) {
-        require(_asset != address(0), "无效的资产地址");
-        require(_harvestInterval > 0, "收获间隔必须大于零");
+        require(_asset != address(0), unicode"Invalid asset address");
+        require(_harvestInterval > 0, unicode"Harvest interval must be greater than zero");
 
         asset = IERC20(_asset);
         sharePrice = MIN_SHARE_PRICE;
@@ -187,7 +187,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * - 获得份额 = (1000 × 1.2e18) / 1e18 = 1200 份额
      */
     function deposit(uint256 amount) external nonReentrant returns (uint256) {
-        require(amount > 0, "存款数量必须大于零");
+        require(amount > 0, unicode"存款数量必须大于零");
 
         // 收获收益（更新份额价格）
         _harvestIfNeeded();
@@ -195,12 +195,12 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
         // 转入资产
         require(
             asset.transferFrom(msg.sender, address(this), amount),
-            "资产转账失败"
+            unicode"Asset transfer failed"
         );
 
         // 计算份额数量
         uint256 shares = (amount * PRICE_PRECISION) / sharePrice;
-        require(shares > 0, "份额数量为零");
+        require(shares > 0, unicode"份额数量为零");
 
         // 铸造份额代币
         _mint(msg.sender, shares);
@@ -233,8 +233,8 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * 某些策略可能需要时间解锁资产，因此需要提前请求提款
      */
     function requestWithdraw(uint256 shares) external {
-        require(shares > 0, "份额数量必须大于零");
-        require(balanceOf(msg.sender) >= shares, "份额余额不足");
+        require(shares > 0, unicode"份额数量必须大于零");
+        require(balanceOf(msg.sender) >= shares, unicode"份额余额不足");
 
         // 取消之前的请求（如果有）
         withdrawRequests[msg.sender] = WithdrawRequest({
@@ -260,15 +260,15 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * - 提取金额 = (1200 × 1.3e18) / 1e18 = 1560 USDT
      */
     function withdraw(uint256 shares) external nonReentrant returns (uint256) {
-        require(shares > 0, "份额数量必须大于零");
-        require(balanceOf(msg.sender) >= shares, "份额余额不足");
+        require(shares > 0, unicode"份额数量必须大于零");
+        require(balanceOf(msg.sender) >= shares, unicode"份额余额不足");
 
         // 检查是否有提款请求
         WithdrawRequest storage request = withdrawRequests[msg.sender];
         if (request.shares > 0 && !request.processed) {
-            require(request.shares == shares, "份额数量不匹配");
+            require(request.shares == shares, unicode"份额数量不匹配");
             // 可以添加时间检查，例如：
-            // require(block.timestamp >= request.timestamp + 1 days, "提款锁定期未过");
+            // require(block.timestamp >= request.timestamp + 1 days, unicode"提款锁定期未过");
             request.processed = true;
         }
 
@@ -289,13 +289,13 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
 
         // 确保有足够资产
         balanceHere = asset.balanceOf(address(this));
-        require(balanceHere >= amount, "流动性不足");
+        require(balanceHere >= amount, unicode"流动性不足");
 
         // 销毁份额
         _burn(msg.sender, shares);
 
         // 转出资产
-        require(asset.transfer(msg.sender, amount), "资产转账失败");
+        require(asset.transfer(msg.sender, amount), unicode"Asset transfer failed");
 
         emit Withdraw(msg.sender, shares, amount);
         return amount;
@@ -341,7 +341,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
                 // 收取性能费用
                 uint256 fee = (profit * performanceFee) / 10000;
                 if (fee > 0) {
-                    require(asset.transfer(feeRecipient, fee), "费用转账失败");
+                    require(asset.transfer(feeRecipient, fee), unicode"费用转账失败");
                     profit -= fee;
                 }
 
@@ -443,7 +443,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
     function collectManagementFee() external {
         require(
             block.timestamp >= lastManagementFeeTime + managementFeeInterval,
-            "管理费用收取间隔未到"
+            unicode"管理费用收取间隔未到"
         );
 
         uint256 totalAssets = getTotalAssets();
@@ -460,7 +460,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
                 }
             }
 
-            require(asset.transfer(feeRecipient, fee), "费用转账失败");
+            require(asset.transfer(feeRecipient, fee), unicode"费用转账失败");
 
             emit FeesCollected(fee, 0);
         }
@@ -480,7 +480,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * 3. 将资产存入新策略
      */
     function setStrategy(address _newStrategy) external onlyOwner {
-        require(_newStrategy != address(0), "无效的策略地址");
+        require(_newStrategy != address(0), unicode"无效的策略地址");
 
         // 从旧策略提取所有资产
         if (address(activeStrategy) != address(0)) {
@@ -492,6 +492,11 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
 
         address oldStrategy = address(activeStrategy);
         activeStrategy = IStrategy(_newStrategy);
+
+        // 授权新策略可以操作合约的资产
+        if (_newStrategy != address(0)) {
+            asset.approve(_newStrategy, type(uint256).max);
+        }
 
         // 将资产存入新策略
         uint256 balanceHere = asset.balanceOf(address(this));
@@ -509,9 +514,9 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      */
     function emergencyWithdraw(uint256 amount) external onlyOwner {
         uint256 balanceHere = asset.balanceOf(address(this));
-        require(balanceHere >= amount, "余额不足");
+        require(balanceHere >= amount, unicode"Insufficient balance");
 
-        require(asset.transfer(owner(), amount), "转账失败");
+        require(asset.transfer(owner(), amount), unicode"转账失败");
     }
 
     // ========== 管理员功能 ==========
@@ -521,7 +526,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * @param _interval 新的收获间隔（秒）
      */
     function setHarvestInterval(uint256 _interval) external onlyOwner {
-        require(_interval > 0, "间隔必须大于零");
+        require(_interval > 0, unicode"间隔必须大于零");
         harvestInterval = _interval;
     }
 
@@ -530,7 +535,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * @param _fee 新的管理费用（基点）
      */
     function setManagementFee(uint256 _fee) external onlyOwner {
-        require(_fee <= 1000, "管理费用不能超过 10%");
+        require(_fee <= 1000, unicode"管理费用不能超过 10%");
         managementFee = _fee;
     }
 
@@ -539,7 +544,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * @param _fee 新的性能费用（基点）
      */
     function setPerformanceFee(uint256 _fee) external onlyOwner {
-        require(_fee <= 5000, "性能费用不能超过 50%");
+        require(_fee <= 5000, unicode"性能费用不能超过 50%");
         performanceFee = _fee;
     }
 
@@ -548,7 +553,7 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
      * @param _recipient 新的费用接收地址
      */
     function setFeeRecipient(address _recipient) external onlyOwner {
-        require(_recipient != address(0), "无效的接收地址");
+        require(_recipient != address(0), unicode"无效的接收地址");
         feeRecipient = _recipient;
     }
 
@@ -556,18 +561,18 @@ contract YieldAggregator is ERC20, ReentrancyGuard, Ownable {
 
     /**
      * @notice 获取合约信息
-     * @return totalAssets 总资产
-     * @return totalSupply 总供应量
-     * @return sharePrice 份额价格
+     * @return totalAssetsValue 总资产
+     * @return totalSupplyValue 总供应量
+     * @return sharePriceValue 份额价格
      * @return activeStrategyAddress 活跃策略地址
      */
     function getVaultInfo()
         external
         view
         returns (
-            uint256 totalAssets,
-            uint256 totalSupply,
-            uint256 sharePrice,
+            uint256 totalAssetsValue,
+            uint256 totalSupplyValue,
+            uint256 sharePriceValue,
             address activeStrategyAddress
         )
     {

@@ -168,7 +168,7 @@ describe("继承与多态测试", function () {
 
     describe("接口继承", function () {
         it("MyToken 应该实现 IERC20Extended", async function () {
-            const MyToken = await ethers.getContractFactory("MyToken");
+            const MyToken = await ethers.getContractFactory("solidity/contracts/lesson_07_inheritance_polymorphism.sol:MyToken");
             const token = await MyToken.deploy(ethers.parseEther("1000"));
             await token.waitForDeployment();
             
@@ -178,7 +178,7 @@ describe("继承与多态测试", function () {
         });
 
         it("应该支持基本转账", async function () {
-            const MyToken = await ethers.getContractFactory("MyToken");
+            const MyToken = await ethers.getContractFactory("solidity/contracts/lesson_07_inheritance_polymorphism.sol:MyToken");
             const token = await MyToken.deploy(ethers.parseEther("1000"));
             await token.waitForDeployment();
             
@@ -187,7 +187,7 @@ describe("继承与多态测试", function () {
         });
 
         it("应该支持 approve 和 transferFrom", async function () {
-            const MyToken = await ethers.getContractFactory("MyToken");
+            const MyToken = await ethers.getContractFactory("solidity/contracts/lesson_07_inheritance_polymorphism.sol:MyToken");
             const token = await MyToken.deploy(ethers.parseEther("1000"));
             await token.waitForDeployment();
             
@@ -320,39 +320,43 @@ describe("继承与多态测试", function () {
         });
     });
 
-    describe.skip("Gas 消耗分析 (仅包含 pure/view 函数)", function () {
+    describe("Gas 消耗分析 (仅包含 pure/view 函数)", function () {
         it("报告不同继承模式的 Gas 消耗", async function () {
-            // 单继承
+            // 单继承 - 通过调用估算 Gas
             const Dog = await ethers.getContractFactory("solidity/contracts/lesson_07_inheritance_polymorphism.sol:Dog");
             const dog = await Dog.deploy("Test", "Test");
             await dog.waitForDeployment();
-            
-            const tx1 = await dog.makeSound();
-            const receipt1 = await tx1.wait();
-            console.log(`Single inheritance Gas: ${receipt1.gasUsed.toString()}`);
-            
+
+            const gas1 = await dog.makeSound.estimateGas();
+            console.log(`Single inheritance Gas: ${gas1.toString()}`);
+
             // 多重继承
             const D = await ethers.getContractFactory("solidity/contracts/lesson_07_inheritance_polymorphism.sol:D");
             const d = await D.deploy();
             await d.waitForDeployment();
-            
-            const tx2 = await d.foo();
-            const receipt2 = await tx2.wait();
-            console.log(`Multiple inheritance Gas: ${receipt2.gasUsed.toString()}`);
+
+            const gas2 = await d.foo.estimateGas();
+            console.log(`Multiple inheritance Gas: ${gas2.toString()}`);
+
+            // 验证 Gas 估算成功
+            expect(gas1).to.be.greaterThan(0);
+            expect(gas2).to.be.greaterThan(0);
         });
 
         it("报告 super 调用的 Gas 消耗", async function () {
             const Derived = await ethers.getContractFactory("Derived");
             const derived = await Derived.deploy();
             await derived.waitForDeployment();
-            
-            const tx1 = await derived.func();
-            const receipt1 = await tx1.wait();
-            console.log(`Super call Gas: ${receipt1.gasUsed.toString()}`);
-            
-            const tx2 = await derived.callBase1();
-            const receipt2 = await tx2.wait();
-            console.log(`Direct call Gas: ${receipt2.gasUsed.toString()}`);
+
+            const gas1 = await derived.func.estimateGas();
+            console.log(`Super call Gas: ${gas1.toString()}`);
+
+            const gas2 = await derived.callBase1.estimateGas();
+            console.log(`Direct call Gas: ${gas2.toString()}`);
+
+            // 验证 Gas 估算成功
+            expect(gas1).to.be.greaterThan(0);
+            expect(gas2).to.be.greaterThan(0);
         });
     });
 });

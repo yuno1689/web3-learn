@@ -17,6 +17,7 @@ export default {
             enabled: true,
             runs: 200,
           },
+          evmVersion: "cancun",
         },
       },
       {
@@ -26,6 +27,7 @@ export default {
             enabled: true,
             runs: 200,
           },
+          evmVersion: "cancun",
         },
       },
     ],
@@ -37,6 +39,8 @@ export default {
         count: 20,
         accountsBalance: "100000000000000000000000", // 100k ETH
       },
+      blockGasLimit: 30000000,
+      allowUnlimitedContractSize: true,
     },
     // 测试网配置（可选）
     goerli: {
