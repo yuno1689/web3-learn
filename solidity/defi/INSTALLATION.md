@@ -55,7 +55,8 @@ npm run test:coverage
 
 ```
 web3/
-├── defi/                           # DeFi 实战课程目录
+├── solidity/
+│   └── defi/                       # DeFi 实战课程目录
 │   ├── lesson_16_token_standards.sol   # 代币标准合约实现
 │   ├── lesson_17_dex_amm.sol           # AMM 合约实现
 │   ├── lesson_18_lending.sol           # 借贷协议合约

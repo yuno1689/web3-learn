@@ -262,7 +262,7 @@
 - [x] 代币标准对比
 - [x] OpenZeppelin 实现
 
-**文件位置**: `defi/lesson_16_token_standards.sol`
+**文件位置**: `solidity/defi/lesson_16_token_standards.sol`
 
 #### Lesson 17: DEX 原理 - AMM ✅
 
@@ -273,7 +273,7 @@
 - [x] Uniswap V2 核心合约解析
 - [x] Swap 实现
 
-**文件位置**: `defi/lesson_17_dex_amm.sol`
+**文件位置**: `solidity/defi/lesson_17_dex_amm.sol`
 
 #### Lesson 18: 借贷协议 ✅
 
@@ -284,7 +284,7 @@
 - [x] Aave/Compound 协议分析
 - [x] 简单借贷合约实现
 
-**文件位置**: `defi/lesson_18_lending_protocol.sol`
+**文件位置**: `solidity/defi/lesson_18_lending.sol`
 
 #### Lesson 19: 收益聚合器 ✅
 
@@ -295,7 +295,7 @@
 - [x] Yearn 协议分析
 - [x] 收益优化策略
 
-**文件位置**: `defi/lesson_19_yield_aggregator.sol`
+**文件位置**: `solidity/defi/lesson_19_yield_aggregator.sol`
 
 #### Lesson 20: DAO 治理系统 ✅
 
@@ -306,9 +306,9 @@
 - [x] 治理代币设计
 - [x] Snapshot 链下治理
 
-**文件位置**: `defi/lesson_20_dao_governance.sol`
+**文件位置**: `solidity/defi/lesson_20_dao_governance.sol`
 
-**阶段总结**: [DeFi 实战总结](../defi/README_Stage4.md) | **安装指南**: [DeFi 安装说明](../defi/INSTALLATION.md)
+**阶段总结**: [DeFi 实战总结](../solidity/defi/README_Stage4.md) | **安装指南**: [DeFi 安装说明](../solidity/defi/INSTALLATION.md)
 
 ---
 
@@ -422,11 +422,10 @@ web3/
 │       ├── lesson_23_gas_optimization_basics.sol
 │       └── README_lesson_23.md
 │
-├── defi/                               # 第四阶段: DeFi 实战 (Lesson 16-20)
+├── solidity/defi/                      # 第四阶段: DeFi 实战 (Lesson 16-20)
 │   ├── lesson_16_token_standards.sol
 │   ├── README_lesson_16.md
 │   ├── INSTALLATION.md                 # 安装说明
-│   ├── hardhat.config.js               # Hardhat 配置
 │   └── README_Stage4.md                # 阶段总结
 │
 ├── test/                               # 🧪 测试文件目录（根目录）

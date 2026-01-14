@@ -99,7 +99,7 @@ web3/
 │       ├── lesson_23_gas_optimization_basics.sol
 │       └── README_lesson_23.md
 │
-├── defi/                               # 第四阶段: DeFi 实战 (Lesson 16-20) ✅
+├── solidity/defi/                      # 第四阶段: DeFi 实战 (Lesson 16-20) ✅
 │   ├── lesson_16_token_standards.sol
 │   ├── README_lesson_16.md
 │   ├── INSTALLATION.md                 # 安装说明
@@ -160,11 +160,11 @@ web3/
 
 **适合人群**: DeFi 开发者 | **学习时长**: 约 25-30 小时
 
-- [Lesson 16: 代币标准](defi/README_lesson_16.md) - ERC20, ERC721, ERC1155
-- [Lesson 17: DEX 原理](defi/README_lesson_17.md) - AMM 自动做市商
-- [Lesson 18: 借贷协议](defi/README_lesson_18.md) - Lending Protocol
-- [Lesson 19: 收益聚合器](defi/README_lesson_19.md) - Yield Aggregator
-- [Lesson 20: DAO 治理系统](defi/README_lesson_20.md) - Governance System
+- [Lesson 16: 代币标准](solidity/defi/README_lesson_16.md) - ERC20, ERC721, ERC1155
+- [Lesson 17: DEX 原理](solidity/defi/README_lesson_17.md) - AMM 自动做市商
+- [Lesson 18: 借贷协议](solidity/defi/README_lesson_18.md) - Lending Protocol
+- [Lesson 19: 收益聚合器](solidity/defi/README_lesson_19.md) - Yield Aggregator
+- [Lesson 20: DAO 治理系统](solidity/defi/README_lesson_20.md) - Governance System
 
 ---
 

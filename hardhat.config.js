@@ -67,9 +67,7 @@ export default {
     cache: "./cache",
     artifacts: "./artifacts",
   },
-  remappings: [
-    "defi/=./defi/",
-  ],
+  remappings: [],
   mocha: {
     timeout: 40000,
   },

@@ -89,13 +89,13 @@
 
 | 课程 | 文件位置 | 核心内容 | 学习时间 | 状态 |
 |------|---------|---------|---------|------|
-| [Lesson 16](defi/README_lesson_16.md) | `defi/lesson_16_*` | ERC20/721/1155 代币标准 | 3 小时 | ✅ |
-| [Lesson 17](defi/README_lesson_17.md) | `defi/lesson_17_*` | DEX、AMM 自动做市商 | 4 小时 | ✅ |
-| [Lesson 18](defi/README_lesson_18.md) | `defi/lesson_18_*` | 借贷协议、抵押清算 | 4 小时 | ✅ |
-| [Lesson 19](defi/README_lesson_19.md) | `defi/lesson_19_*` | 收益聚合器、Yield Farming | 4 小时 | ✅ |
-| [Lesson 20](defi/README_lesson_20.md) | `defi/lesson_20_*` | DAO 治理系统 | 4 小时 | ✅ |
+| [Lesson 16](solidity/defi/README_lesson_16.md) | `solidity/defi/lesson_16_*` | ERC20/721/1155 代币标准 | 3 小时 | ✅ |
+| [Lesson 17](solidity/defi/README_lesson_17.md) | `solidity/defi/lesson_17_*` | DEX、AMM 自动做市商 | 4 小时 | ✅ |
+| [Lesson 18](solidity/defi/README_lesson_18.md) | `solidity/defi/lesson_18_*` | 借贷协议、抵押清算 | 4 小时 | ✅ |
+| [Lesson 19](solidity/defi/README_lesson_19.md) | `solidity/defi/lesson_19_*` | 收益聚合器、Yield Farming | 4 小时 | ✅ |
+| [Lesson 20](solidity/defi/README_lesson_20.md) | `solidity/defi/lesson_20_*` | DAO 治理系统 | 4 小时 | ✅ |
 
-**阶段总结**: [DeFi 实战总结](defi/README_Stage4.md) | **安装指南**: [DeFi 安装说明](defi/INSTALLATION.md)
+**阶段总结**: [DeFi 实战总结](solidity/defi/README_Stage4.md) | **安装指南**: [DeFi 安装说明](solidity/defi/INSTALLATION.md)
 
 ---
 
