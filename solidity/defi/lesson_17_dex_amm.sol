@@ -175,7 +175,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         require(amount1 >= amount1Min, unicode"Token1 滑点过大");
 
         // 更新储备金
-        _update(balance0(), balance1());
+        _update(balance0Internal(), balance1Internal());
 
         // 铸造 LP 代币给用户
         _mint(msg.sender, liquidity);
@@ -218,7 +218,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         _burn(msg.sender, liquidity);
 
         // 更新储备金（先更新，防止重入）
-        _update(balance0() - amount0, balance1() - amount1);
+        _update(balance0Internal() - amount0, balance1Internal() - amount1);
 
         // 转出代币
         token0.transfer(msg.sender, amount0);
@@ -251,7 +251,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
     {
         if (amount0In == 0) revert ZeroAmount();
 
-        uint256 balance0Before = balance0();
+        uint256 balance0Before = balance0Internal();
         if (balance0Before < amount0In) revert InsufficientLiquidity();
 
         // 计算输出数量（扣除 0.3% 手续费）
@@ -264,7 +264,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         if (amount1Out < amount1Min) revert SlippageExceeded();
 
         // 更新储备金
-        _update(balance0Before + amount0In, balance1() - amount1Out);
+        _update(balance0Before + amount0In, balance1Internal() - amount1Out);
 
         // 转账
         token0.transferFrom(msg.sender, address(this), amount0In);
@@ -289,7 +289,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
     {
         if (amount1In == 0) revert ZeroAmount();
 
-        uint256 balance1Before = balance1();
+        uint256 balance1Before = balance1Internal();
         if (balance1Before < amount1In) revert InsufficientLiquidity();
 
         // 计算输出数量（扣除 0.3% 手续费）
@@ -301,7 +301,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
         if (amount0Out < amount0Min) revert SlippageExceeded();
 
         // 更新储备金
-        _update(balance0() - amount0Out, balance1Before + amount1In);
+        _update(balance0Internal() - amount0Out, balance1Before + amount1In);
 
         // 转账
         token1.transferFrom(msg.sender, address(this), amount1In);
@@ -368,24 +368,24 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
     /**
      * @notice 更新储备金
      * @dev 使用 checks-effects-interactions 模式防止重入攻击
-     * @param balance0 新的 token0 余额
-     * @param balance1 新的 token1 余额
+     * @param newBalance0 新的 token0 余额
+     * @param newBalance1 新的 token1 余额
      */
-    function _update(uint256 balance0, uint256 balance1) private {
-        require(balance0 <= type(uint256).max && balance1 <= type(uint256).max, unicode"溢出");
+    function _update(uint256 newBalance0, uint256 newBalance1) private {
+        require(newBalance0 <= type(uint256).max && newBalance1 <= type(uint256).max, unicode"溢出");
 
         // 更新储备金状态
-        reserve0 = balance0;
-        reserve1 = balance1;
+        reserve0 = newBalance0;
+        reserve1 = newBalance1;
 
-        emit Sync(balance0, balance1);
+        emit Sync(newBalance0, newBalance1);
     }
 
     /**
      * @notice 获取合约当前 token0 余额
      * @return token0 余额
      */
-    function balance0() private view returns (uint256) {
+    function balance0Internal() private view returns (uint256) {
         return token0.balanceOf(address(this));
     }
 
@@ -393,7 +393,7 @@ contract AMMPair is ERC20, ReentrancyGuard, Ownable {
      * @notice 获取合约当前 token1 余额
      * @return token1 余额
      */
-    function balance1() private view returns (uint256) {
+    function balance1Internal() private view returns (uint256) {
         return token1.balanceOf(address(this));
     }
 

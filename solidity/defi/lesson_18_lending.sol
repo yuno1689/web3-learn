@@ -413,7 +413,6 @@ contract LendingPool is ERC20, ReentrancyGuard, Ownable {
      */
     function getBorrowCapacity(address user) public view returns (uint256) {
         uint256 balance = balanceOf(user);
-        uint256 currentBorrow = accounts[user].borrowBalance;
 
         // 考虑利息累积的借款余额
         uint256 borrowBalanceWithInterest = calculateBorrowBalance(user);

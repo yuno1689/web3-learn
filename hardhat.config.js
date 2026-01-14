@@ -15,7 +15,7 @@ export default {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 200,  // 平衡字节码大小和运行时 Gas
           },
           evmVersion: "cancun",
         },
